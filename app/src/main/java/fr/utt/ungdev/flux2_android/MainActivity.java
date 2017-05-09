@@ -2,9 +2,14 @@ package fr.utt.ungdev.flux2_android;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +33,10 @@ public class MainActivity extends AppCompatActivity {
         WebView.setWebContentsDebuggingEnabled(true);
         // allow localStorage operations
         webSettings.setDomStorageEnabled(true);
+
+        // get the instance token
+        FirebaseInstanceId.getInstance().getToken();
+        Log.d("INSTANCE TOKEN", FirebaseInstanceId.getInstance().getToken());
 
         // use our WebViewClient
         WebViewClientImpl webViewClient = new WebViewClientImpl();
