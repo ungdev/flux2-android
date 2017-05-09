@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(webViewClient);
 
         // the webApp to load
-        webView.loadUrl(URL);
+        webView.loadUrl(URL + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
     }
 
     private class WebViewClientImpl extends WebViewClient {
