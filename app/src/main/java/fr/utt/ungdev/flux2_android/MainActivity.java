@@ -1,19 +1,44 @@
 package fr.utt.ungdev.flux2_android;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.firebase.FirebaseApp;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.FirebaseInstanceIdService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String URL = "https://bar.utt.fr/";
+    public static final String API_URI = "https://flux-dev.uttnetgroup.fr/";
+
+    private class CustomJSInterface {
+
+        private Context context;
+
+        private CustomJSInterface(Context context) {
+            this.context = context;
+        }
+
+        @JavascriptInterface
+        public String initTopics(String jwt) {
+            MainActivity.subscribeToTopics(this.context, jwt);
+1        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +67,50 @@ public class MainActivity extends AppCompatActivity {
         WebViewClientImpl webViewClient = new WebViewClientImpl();
         webView.setWebViewClient(webViewClient);
 
+        // add interface
+        webView.addJavascriptInterface(new CustomJSInterface(this), "androidInterface");
+
         // the webApp to load
-        webView.loadUrl(URL + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
+        webView.loadUrl(API_URI + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
+    }
+
+    /**
+     * Register a listener on each allowed topic for the authenticated user.
+     * @param context the Activity context
+     * @param jwt the user token
+     */
+    public static void subscribeToTopics(Context context, String jwt) {
+
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String getChannelsEndpoint = MainActivity.API_URI + "message/channels";
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, getChannelsEndpoint,
+            new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    // Display the first 500 characters of the response string.
+                    Log.d("volley success", "Response is: "+ response.substring(0,500));
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("volley error", "That didn't work!");
+                }
+            }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Authorization", "Bearer "+ jwt);
+                return params;
+            }
+        };
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+
     }
 
     private class WebViewClientImpl extends WebViewClient {
