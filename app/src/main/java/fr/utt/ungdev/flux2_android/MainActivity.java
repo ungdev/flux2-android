@@ -1,6 +1,5 @@
 package fr.utt.ungdev.flux2_android;
 
-import android.app.DownloadManager;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,7 +23,9 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String API_URI = "https://flux-dev.uttnetgroup.fr/";
+    public static final String APP_URI = "https://flux-dev.uttnetgroup.fr/";
+    public static final String API_URI = "https://api.flux-dev.uttnetgroup.fr/";
+    public static String JWT = "";
 
     private class CustomJSInterface {
 
@@ -35,9 +36,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public String initTopics(String jwt) {
-            MainActivity.subscribeToTopics(this.context, jwt);
-1        }
+        public void initTopics(String jwt) {
+            Log.d("JWT2", jwt);
+            MainActivity.JWT = jwt;
+            MainActivity.subscribeToTopics(this.context);
+        }
     }
 
     @Override
@@ -71,15 +74,14 @@ public class MainActivity extends AppCompatActivity {
         webView.addJavascriptInterface(new CustomJSInterface(this), "androidInterface");
 
         // the webApp to load
-        webView.loadUrl(API_URI + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
+        webView.loadUrl(APP_URI + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
     }
 
     /**
      * Register a listener on each allowed topic for the authenticated user.
      * @param context the Activity context
-     * @param jwt the user token
      */
-    public static void subscribeToTopics(Context context, String jwt) {
+    public static void subscribeToTopics(Context context) {
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -91,7 +93,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(String response) {
                     // Display the first 500 characters of the response string.
-                    Log.d("volley success", "Response is: "+ response.substring(0,500));
+                    Log.d("volley success", "Response is: "+ response);
+                    String[] channels = response.replace("[", "").replace("\"", "").split(",");
                 }
             },
             new Response.ErrorListener() {
@@ -104,7 +107,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("Authorization", "Bearer "+ jwt);
+                Log.d("JWT", MainActivity.JWT);
+                params.put("Authorization", "Bearer " + MainActivity.JWT);
                 return params;
             }
         };
