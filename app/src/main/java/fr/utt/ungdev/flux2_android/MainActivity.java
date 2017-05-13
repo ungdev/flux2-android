@@ -17,14 +17,18 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String APP_URI = "https://flux-dev.uttnetgroup.fr/";
+    //public static final String APP_URI = "10.0.2.2:8080";
     public static final String API_URI = "https://api.flux-dev.uttnetgroup.fr/";
+    //public static final String API_URI = "10.0.2.2:1337";
     public static String JWT = "";
 
     private class CustomJSInterface {
@@ -92,9 +96,22 @@ public class MainActivity extends AppCompatActivity {
             new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    // Display the first 500 characters of the response string.
                     Log.d("volley success", "Response is: "+ response);
-                    String[] channels = response.replace("[", "").replace("\"", "").split(",");
+                    String[] channels = response.replace("[", "").replace("\"", "").replace(":", "_").split(",");
+
+                    // subscribe to each channel
+                    for (String channel:channels) {
+                        byte[] data;
+                        try {
+                            data = channel.getBytes("UTF-8");
+                            String encodedChannel = String.format("%x", new BigInteger(1, data));
+                            FirebaseMessaging.getInstance().subscribeToTopic(encodedChannel);
+                            Log.d("SUBSCRIBED", channel + " - " + encodedChannel);
+                        } catch (Exception e) {
+                            Log.e("SUBSCRIBE", "Failed to subscribe to " + channel);
+                            Log.e("SUBSCRIBE", e.toString());
+                        }
+                    }
                 }
             },
             new Response.ErrorListener() {
