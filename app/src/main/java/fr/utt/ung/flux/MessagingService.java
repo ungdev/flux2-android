@@ -3,7 +3,7 @@ package fr.utt.ung.flux;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.provider.Settings;
+import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 
@@ -43,10 +43,11 @@ public class MessagingService extends FirebaseMessagingService {
                 .setContentTitle("Nouveau message sur " + payload.get("channel").split(":")[1])
                 .setContentText(payload.get("senderName") + " (" + payload.get("senderTeamName") + ") : " + payload.get("text"))
                 .setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent))
-                //.setOnlyAlertOnce(true)
+                .setOnlyAlertOnce(true)
                 .setVibrate(new long[] { 0, 250, 100, 250, 100, 500  })
                 .setLights(ContextCompat.getColor(this.getApplicationContext(), R.color.colorAccent), 3000, 3000)
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
+                .setSound(Uri.parse("android.resource://" + getApplicationContext().getPackageName() + "/" + R.raw.notification));
+                //.setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
 
                 // Set action
                 Intent resultIntent = new Intent(this, MainActivity.class);
