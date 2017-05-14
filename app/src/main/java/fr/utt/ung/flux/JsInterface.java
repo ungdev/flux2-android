@@ -1,34 +1,40 @@
 package fr.utt.ung.flux;
 
+import android.app.NotificationManager;
 import android.content.Context;
-import android.util.Log;
 import android.webkit.JavascriptInterface;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 
 /**
  * Will be exposed to js in webview to communicate with flux2-client
  */
 public class JsInterface {
-
-    private Context context;
+    private static JsInterface INSTANCE = new JsInterface();
+    private Context context = null;
 
     private String firebaseToken;
     private String androidUid;
 
     private String JWT;
     private String apiUri;
+    private String route;
+    private String channel;
     private boolean modal = false;
 
-    public JsInterface(Context context) {
-        this.context = context;
+    private JsInterface() {}
+
+    public static JsInterface get()
+    {
+        return INSTANCE;
     }
 
-    public void initTopics(String jwt) {
-        Log.d("JWT2", jwt);
-        //MainActivity.JWT = jwt;
-        //MainActivity.subscribeToTopics(this.context);
+    public static JsInterface get(Context context)
+    {
+        INSTANCE.context = context;
+        return INSTANCE;
     }
-
 
     @JavascriptInterface
     public String getFirebaseToken() {
@@ -75,5 +81,29 @@ public class JsInterface {
     @JavascriptInterface
     public void setModal(boolean modal) {
         this.modal = modal;
+    }
+
+    public String getRoute() {
+        return route;
+    }
+
+    @JavascriptInterface
+    public void setRoute(String route) {
+        this.route = route;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    @JavascriptInterface
+    public void setChannel(String channel) {
+        this.channel = channel;
+
+        // Remove notification for this channel
+        if(this.context != null) {
+            NotificationManager mNotifyMgr = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            mNotifyMgr.cancel(channel, 0);
+        }
     }
 }
