@@ -1,13 +1,15 @@
-package fr.utt.ungdev.flux2_android;
+package fr.utt.ung.flux;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.provider.Settings.Secure;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.webkit.JavascriptInterface;
+import android.view.KeyEvent;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -25,27 +27,12 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String APP_URI = "https://flux-dev.uttnetgroup.fr/";
-    //public static final String APP_URI = "10.0.2.2:8080";
-    public static final String API_URI = "https://api.flux-dev.uttnetgroup.fr/";
-    //public static final String API_URI = "10.0.2.2:1337";
-    public static String JWT = "";
+    //public static final String APP_URI = "https://flux-dev.uttnetgroup.fr/";
+    public static final String APP_URI = "http://192.168.1.2:8080/";
 
-    private class CustomJSInterface {
-
-        private Context context;
-
-        private CustomJSInterface(Context context) {
-            this.context = context;
-        }
-
-        @JavascriptInterface
-        public void initTopics(String jwt) {
-            Log.d("JWT2", jwt);
-            MainActivity.JWT = jwt;
-            MainActivity.subscribeToTopics(this.context);
-        }
-    }
+    private WebView webview;
+    private JsInterface jsInterface;
+    private LinearLayout loadingLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +42,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // get the WebView element inside the app page
-        WebView webView = (WebView) findViewById(R.id.myWebView);
+        webview = (WebView) findViewById(R.id.myWebView);
 
         // SET WEBVIEW SETTINGS
-        WebSettings webSettings = webView.getSettings();
+        WebSettings webSettings = this.webview.getSettings();
         // enable javascript
         webSettings.setJavaScriptEnabled(true);
         // allow chrome debugging (console -> more tools -> remote devices)
@@ -66,26 +53,35 @@ public class MainActivity extends AppCompatActivity {
         // allow localStorage operations
         webSettings.setDomStorageEnabled(true);
 
-        // get the instance token
-        FirebaseInstanceId.getInstance().getToken();
-        Log.d("INSTANCE TOKEN", FirebaseInstanceId.getInstance().getToken());
-
         // use our WebViewClient
-        WebViewClientImpl webViewClient = new WebViewClientImpl();
-        webView.setWebViewClient(webViewClient);
+        loadingLayout = (LinearLayout) findViewById(R.id.loadingLayout);
+        webview.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress)
+            {
+                if(progress == 100) {
+                    loadingLayout.setVisibility(LinearLayout.GONE);
+                }
+            }
+        });
 
-        // add interface
-        webView.addJavascriptInterface(new CustomJSInterface(this), "androidInterface");
+        // add js interface
+        jsInterface = new JsInterface(getApplicationContext());
+        jsInterface.setFirebaseToken(FirebaseInstanceId.getInstance().getToken());
+        jsInterface.setAndroidUid(Secure.getString(getApplicationContext().getContentResolver(), Secure.ANDROID_ID));
+        webview.addJavascriptInterface(jsInterface, "Android");
 
-        // the webApp to load
-        webView.loadUrl(APP_URI + "?firebase=" + FirebaseInstanceId.getInstance().getToken());
+        // Load the webapp if necessary
+        if (savedInstanceState == null)
+        {
+            webview.loadUrl(APP_URI);
+        }
     }
 
     /**
      * Register a listener on each allowed topic for the authenticated user.
      * @param context the Activity context
      */
-    public static void subscribeToTopics(Context context) {
+/*    public static void subscribeToTopics(Context context) {
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -132,13 +128,21 @@ public class MainActivity extends AppCompatActivity {
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
 
-    }
 
-    private class WebViewClientImpl extends WebViewClient {
-        @SuppressWarnings("deprecation")
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-            return false;
+    }*/
+
+    /**
+     * Don't kill web view on 'back', go back in webview or hide
+     */
+    @Override
+    public void onBackPressed() {
+        if(jsInterface.hasModal()) {
+            webview.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE));
+        }
+        else if (webview.canGoBack()) {
+            webview.goBack();
+        } else {
+            moveTaskToBack(true);
         }
     }
 }

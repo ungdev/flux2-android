@@ -1,4 +1,4 @@
-package fr.utt.ungdev.flux2_android;
+package fr.utt.ung.flux;
 
 import android.util.Log;
 
@@ -8,7 +8,7 @@ import com.google.firebase.messaging.RemoteMessage;
 /**
  * https://github.com/firebase/quickstart-android/blob/master/messaging/app/src/main/java/com/google/firebase/quickstart/fcm/MyFirebaseMessagingService.java#L45-L82
  */
-public class MyFirebaseMessagingService extends FirebaseMessagingService {
+public class MessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
 
@@ -19,6 +19,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      */
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d("BITE", "YOLO");
 
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());

@@ -1,14 +1,12 @@
-package fr.utt.ungdev.flux2_android;
+package fr.utt.ung.flux;
 
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
 
-public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
+public class FirebaseIDService extends FirebaseInstanceIdService {
 
     private static final String TAG = "MyFirebaseIIDService";
 
@@ -38,6 +36,7 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
      * @param token The new token.
      */
     private void sendRegistrationToServer(String token) {
+        Log.d(TAG, "send token: " + token);
         // TODO: Implement this method to send token to your app server.
     }
 }
