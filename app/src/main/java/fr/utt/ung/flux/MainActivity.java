@@ -20,8 +20,8 @@ import static fr.utt.ung.flux.R.id.myWebView;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
-    //public static final String APP_URI = BuildConfig.DEBUG ? "https://flux-dev.uttnetgroup.fr/" : "https://bar.utt.fr/";
-    public static final String APP_URI = "http://192.168.1.2:8080/";
+    public static final String APP_URI = BuildConfig.DEBUG ? "https://flux-dev.uttnetgroup.fr/" : "https://bar.utt.fr/";
+    //public static final String APP_URI = "http://192.168.1.2:8080/";
 
     private WebView webview;
     private LinearLayout loadingLayout;
