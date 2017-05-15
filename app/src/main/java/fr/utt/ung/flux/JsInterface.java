@@ -17,10 +17,10 @@ public class JsInterface {
     private String firebaseToken;
     private String androidUid;
 
-    private String JWT;
-    private String apiUri;
-    private String route;
-    private String channel;
+    private String JWT = "";
+    private String apiUri = "";
+    private String route = "";
+    private String channel = "";
     private boolean modal = false;
 
     private JsInterface() {}

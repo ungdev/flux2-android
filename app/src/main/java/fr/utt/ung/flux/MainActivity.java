@@ -74,9 +74,10 @@ public class MainActivity extends AppCompatActivity {
         if(FirebaseInstanceId.getInstance().getToken() != null) {
             Log.d(TAG, "Firebase token: " + FirebaseInstanceId.getInstance().getToken());
         }
-        if(FirebaseInstanceId.getInstance().getToken() != null) {
-            Log.d(TAG, "Android UID: " + Secure.getString(getApplicationContext().getContentResolver(), Secure.ANDROID_ID));
+        else {
+            Log.d(TAG, "Not Firebase token yet");
         }
+        Log.d(TAG, "Android UID: " + Secure.getString(getApplicationContext().getContentResolver(), Secure.ANDROID_ID));
 
 
         // Load the webapp if necessary
