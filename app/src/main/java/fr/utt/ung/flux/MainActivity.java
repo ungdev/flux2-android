@@ -54,11 +54,14 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+        loadingLayout.setVisibility(LinearLayout.VISIBLE);
+        webview.setVisibility(WebView.GONE);
         webview.setWebChromeClient(new WebChromeClient() {
             public void onProgressChanged(WebView view, int progress)
             {
                 if(progress == 100 && loadingLayout.getVisibility() != LinearLayout.GONE) {
                     loadingLayout.setVisibility(LinearLayout.GONE);
+                    webview.setVisibility(WebView.VISIBLE);
                     handleRouteIntent(getIntent());
                 }
             }
@@ -86,60 +89,6 @@ public class MainActivity extends AppCompatActivity {
             webview.loadUrl(APP_URI);
         }
     }
-
-    /**
-     * Register a listener on each allowed topic for the authenticated user.
-     * @param context the Activity context
-     */
-/*    public static void subscribeToTopics(Context context) {
-
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(context);
-        String getChannelsEndpoint = MainActivity.API_URI + "/message/channels";
-
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, getChannelsEndpoint,
-            new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    Log.d("volley success", "Response is: "+ response);
-                    String[] channels = response.replace("[", "").replace("\"", "").replace(":", "_").split(",");
-
-                    // subscribe to each channel
-                    for (String channel:channels) {
-                        byte[] data;
-                        try {
-                            data = channel.getBytes("UTF-8");
-                            String encodedChannel = String.format("%x", new BigInteger(1, data));
-                            FirebaseMessaging.getInstance().subscribeToTopic(encodedChannel);
-                            Log.d("SUBSCRIBED", channel + " - " + encodedChannel);
-                        } catch (Exception e) {
-                            Log.e("SUBSCRIBE", "Failed to subscribe to " + channel);
-                            Log.e("SUBSCRIBE", e.toString());
-                        }
-                    }
-                }
-            },
-            new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.d("volley error", "That didn't work!");
-                }
-            }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                Log.d("JWT", MainActivity.JWT);
-                params.put("Authorization", "Bearer " + MainActivity.JWT);
-                return params;
-            }
-        };
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);
-
-
-    }*/
 
     /**
      * If the intent contains route information, the webview will be redirect
