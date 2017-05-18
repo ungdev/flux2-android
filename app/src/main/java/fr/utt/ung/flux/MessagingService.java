@@ -11,6 +11,10 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Map;
 
 /**
@@ -32,10 +36,28 @@ public class MessagingService extends FirebaseMessagingService {
 
         // If it's a chat message
         if (payload.get("type").equals("message")) {
-            // TODO read jsinterface to ignore, ignored channels
 
             // Create notification if we are not already on this channel
             if (!MainActivity.isForeground() || jsInterface.getChannel() == null || !jsInterface.getChannel().equals(payload.get("channel"))) {
+
+                // Filter according to configuration
+                JSONObject configuration = jsInterface.getConfiguration();
+                JSONObject channelConf;
+                try {
+                    // Check if android notifications are disabled
+                    if(configuration.has("android") && !configuration.getBoolean("android")) {
+                        return;
+                    }
+
+                    // Check if notifications are disabled on this channel
+                    channelConf = configuration.getJSONObject("channel");
+                    if(!channelConf.get(payload.get("channel")).equals("notify")) {
+                        return;
+                    }
+                }
+                catch (JSONException e) {
+                    Log.w(TAG, "Error while try to read json to filter message notification:" + e.toString());
+                }
 
                 // Build notification
                 NotificationCompat.Builder builder = this.createNotificationBuilder()
@@ -57,7 +79,33 @@ public class MessagingService extends FirebaseMessagingService {
                 mNotifyMgr.notify(mNotificationTag, mNotificationId, builder.build());
             }
         } else if (payload.get("type").equals("alert")) {
-            // TODO read jsinterface to know if we trigger notif
+
+            // Filter according to configuration
+            JSONObject configuration = jsInterface.getConfiguration();
+            try {
+                // Check if android notifications are disabled
+                if(configuration.has("alert") && !configuration.getBoolean("alert")) {
+                    return;
+                }
+
+                JSONArray alertReceivers = jsInterface.getAlertReceivers();
+                boolean filtered = true;
+                if(alertReceivers.length() > 0) {
+                    for (int i = 0; i < alertReceivers.length(); i++) {
+                        if(alertReceivers.getString(i).equals(payload.get("receiver")) || (alertReceivers.isNull(i) && payload.get("receiver").isEmpty())) {
+                            filtered = false;
+                            break;
+                        }
+                    }
+                    if(filtered) {
+                        return;
+                    }
+                }
+            }
+            catch (JSONException e) {
+                Log.w(TAG, "Error while try to read json to filter alert notification:" + e.toString());
+            }
+
 
             // Create notification if we are not already on the alert route
             if (!MainActivity.isForeground() || jsInterface.getRoute() == null || !jsInterface.getRoute().equals("alert")) {
